@@ -30,20 +30,6 @@ function rateLimit(ip: string) {
 }
 
 let tableEnsured = false;
-type Sql = ReturnType<typeof neon>;
-async function ensureTable(sql: Sql) {
-  if (tableEnsured) return;
-  await sql`CREATE TABLE IF NOT EXISTS commissions (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    name text NOT NULL,
-    email text NOT NULL,
-    project_type text NOT NULL,
-    budget text,
-    message text NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT now()
-  )`;
-  tableEnsured = true;
-}
 
 export const submitCommission = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => commissionSchema.parse(input))
@@ -61,7 +47,18 @@ export const submitCommission = createServerFn({ method: "POST" })
 
     try {
       const sql = neon(url);
-      await ensureTable(sql);
+      if (!tableEnsured) {
+        await sql`CREATE TABLE IF NOT EXISTS commissions (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          name text NOT NULL,
+          email text NOT NULL,
+          project_type text NOT NULL,
+          budget text,
+          message text NOT NULL,
+          created_at timestamptz NOT NULL DEFAULT now()
+        )`;
+        tableEnsured = true;
+      }
       await sql`INSERT INTO commissions (name, email, project_type, budget, message)
         VALUES (${data.name}, ${data.email}, ${data.projectType}, ${data.budget || null}, ${data.message})`;
       return { ok: true as const };
@@ -70,3 +67,4 @@ export const submitCommission = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Could not save your request" };
     }
   });
+
