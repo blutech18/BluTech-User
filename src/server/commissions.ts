@@ -30,7 +30,8 @@ function rateLimit(ip: string) {
 }
 
 let tableEnsured = false;
-async function ensureTable(sql: ReturnType<typeof neon>) {
+type Sql = ReturnType<typeof neon>;
+async function ensureTable(sql: Sql) {
   if (tableEnsured) return;
   await sql`CREATE TABLE IF NOT EXISTS commissions (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
