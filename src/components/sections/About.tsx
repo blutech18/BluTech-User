@@ -34,23 +34,23 @@ export function About() {
       id="about"
       ref={ref}
       className="relative bg-white"
-      style={{ height: `${100 + STEPS.length * 70}vh` }}
+      style={{ height: `${110 + STEPS.length * 58}svh` }}
     >
-      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
-        <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 items-center gap-8 px-6 md:grid-cols-12 md:gap-12">
+      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden py-16 md:py-20">
+        <div className="mx-auto grid h-full w-full max-w-[1400px] grid-rows-[auto_minmax(0,1fr)] gap-5 px-6 md:grid-cols-12 md:grid-rows-1 md:items-center md:gap-10">
           {/* Left — heading + progress */}
-          <div className="md:col-span-5">
+          <div className="self-end md:col-span-5 md:self-center">
             <FadeUp>
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600">
                 / Process
               </span>
             </FadeUp>
-            <h2 className="mt-4 font-display text-[clamp(2rem,5.5vw,4.5rem)] uppercase leading-[0.9] text-slate-900">
+            <h2 className="mt-3 font-display text-[clamp(2rem,8.5vw,4.5rem)] uppercase leading-[0.9] text-slate-900 md:mt-4 md:text-[clamp(2rem,5.5vw,4.5rem)]">
               <RevealLines lines={[<>From idea</>, <>to launch.</>]} />
             </h2>
 
             {/* Horizontal progress bar — compact */}
-            <div className="mt-6 hidden items-center gap-3 md:flex">
+            <div className="mt-4 flex items-center gap-3 md:mt-6">
               <div className="relative h-[2px] w-40 overflow-hidden rounded-full bg-slate-200">
                 <motion.div
                   style={{ scaleX: scrollYProgress, transformOrigin: "0% 50%" }}
@@ -64,8 +64,8 @@ export function About() {
           </div>
 
           {/* Right — stacked steps */}
-          <div className="relative md:col-span-7">
-            <div className="relative h-[58vh] max-h-[440px] min-h-[280px] md:h-[60vh] md:max-h-[460px]">
+          <div className="relative min-h-0 md:col-span-7">
+            <div className="relative h-full min-h-[240px] md:h-[min(56svh,420px)] md:min-h-[300px]">
               {STEPS.map((s, i) => (
                 <Step
                   key={s.n}
@@ -117,17 +117,17 @@ function Step({
       style={{ y, opacity, scale }}
       className="absolute inset-0 flex flex-col justify-center"
     >
-      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] md:p-10">
+      <div className="max-h-full overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] sm:p-6 md:p-9">
         <div className="flex items-center justify-between">
           <span className="font-display text-sm tabular-nums text-sky-600">{step.n}</span>
           <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
             Step {index + 1} of {total}
           </span>
         </div>
-        <h3 className="mt-4 font-display text-[clamp(1.75rem,4vw,3.25rem)] uppercase leading-[0.95] text-slate-900">
+        <h3 className="mt-4 font-display text-[clamp(1.65rem,8vw,3rem)] uppercase leading-[0.95] text-slate-900 md:text-[clamp(2rem,4vw,3.25rem)]">
           {step.title}
         </h3>
-        <p className="mt-4 max-w-lg text-sm text-slate-600 md:text-base">{step.desc}</p>
+        <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-600 md:mt-4 md:text-base">{step.desc}</p>
       </div>
     </motion.div>
   );
