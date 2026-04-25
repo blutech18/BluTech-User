@@ -36,7 +36,7 @@ export function About() {
       className="relative bg-white"
       style={{ height: `${110 + STEPS.length * 58}svh` }}
     >
-      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden py-16 md:py-20">
+      <div className="sticky top-[76px] flex h-[calc(100svh-76px)] items-center overflow-hidden py-6 md:py-8">
         <div className="mx-auto grid h-full w-full max-w-[1400px] grid-rows-[auto_minmax(0,1fr)] gap-5 px-6 md:grid-cols-12 md:grid-rows-1 md:items-center md:gap-10">
           {/* Left — heading + progress */}
           <div className="self-end md:col-span-5 md:self-center">
@@ -45,7 +45,7 @@ export function About() {
                 / Process
               </span>
             </FadeUp>
-            <h2 className="mt-3 font-display text-[clamp(2rem,8.5vw,4.5rem)] uppercase leading-[0.9] text-slate-900 md:mt-4 md:text-[clamp(2rem,5.5vw,4.5rem)]">
+            <h2 className="mt-3 font-display text-[clamp(2rem,8vw,4.2rem)] uppercase leading-[0.9] text-slate-900 md:mt-4 md:text-[clamp(2rem,5vw,4.2rem)]">
               <RevealLines lines={[<>From idea</>, <>to launch.</>]} />
             </h2>
 
@@ -65,7 +65,7 @@ export function About() {
 
           {/* Right — stacked steps */}
           <div className="relative min-h-0 md:col-span-7">
-            <div className="relative h-full min-h-[240px] md:h-[min(56svh,420px)] md:min-h-[300px]">
+            <div className="relative h-full min-h-[220px] md:h-[min(50svh,390px)] md:min-h-[280px]">
               {STEPS.map((s, i) => (
                 <Step
                   key={s.n}
