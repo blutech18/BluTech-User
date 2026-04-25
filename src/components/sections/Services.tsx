@@ -45,7 +45,7 @@ export function Services() {
 
   return (
     <section id="services" ref={targetRef} className="relative bg-white" style={{ height: "390svh" }}>
-      <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden py-16 md:py-20">
+      <div className="sticky top-[76px] flex h-[calc(100svh-76px)] flex-col overflow-hidden py-6 md:py-8">
         {/* Header */}
         <div className="mx-auto w-full max-w-[1500px] px-6">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end md:gap-6">
@@ -55,7 +55,7 @@ export function Services() {
                   / Services
                 </span>
               </FadeUp>
-              <h2 className="mt-3 font-display text-[clamp(2.7rem,11vw,9rem)] uppercase leading-[0.9] text-slate-900 md:mt-4 md:text-[clamp(3rem,9vw,9rem)]">
+              <h2 className="mt-3 font-display text-[clamp(2.5rem,10vw,8rem)] uppercase leading-[0.9] text-slate-900 md:mt-4 md:text-[clamp(3rem,8.2vw,8rem)]">
                 <RevealLines lines={[<>What I Do.</>]} />
               </h2>
             </div>
@@ -65,14 +65,14 @@ export function Services() {
               </p>
             </FadeUp>
           </div>
-          <div className="mt-5 flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500 md:mt-8">
+          <div className="mt-4 flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500 md:mt-6">
             <span className="h-px w-10 bg-slate-300" />
             <span>Scroll →</span>
           </div>
         </div>
 
         {/* Horizontal track */}
-        <div className="relative mt-5 flex min-h-0 flex-1 items-center md:mt-8">
+        <div className="relative mt-4 flex min-h-0 flex-1 items-center md:mt-6">
           <motion.div style={{ x }} className="flex h-full items-stretch gap-4 px-6 md:gap-8 md:px-12">
             {SERVICES.map((s, i) => (
               <ServiceCard key={s.title} {...s} index={i} />
@@ -81,7 +81,7 @@ export function Services() {
           </motion.div>
 
           {/* Progress bar */}
-          <div className="absolute bottom-0 left-1/2 h-[2px] w-48 -translate-x-1/2 overflow-hidden rounded-full bg-slate-200 md:w-64">
+          <div className="absolute bottom-1 left-1/2 h-[2px] w-48 -translate-x-1/2 overflow-hidden rounded-full bg-slate-200 md:w-64">
             <motion.div
               style={{ scaleX: scrollYProgress, transformOrigin: "0% 50%" }}
               className="h-full w-full bg-gradient-to-r from-sky-400 to-blue-700"
