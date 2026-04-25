@@ -34,38 +34,38 @@ export function About() {
       id="about"
       ref={ref}
       className="relative bg-white"
-      style={{ height: `${100 + STEPS.length * 80}vh` }}
+      style={{ height: `${100 + STEPS.length * 70}vh` }}
     >
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="mx-auto grid w-full max-w-[1400px] gap-12 px-6 md:grid-cols-12 md:gap-16">
-          {/* Left — heading + progress rail */}
+      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
+        <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 items-center gap-8 px-6 md:grid-cols-12 md:gap-12">
+          {/* Left — heading + progress */}
           <div className="md:col-span-5">
             <FadeUp>
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600">
                 / Process
               </span>
             </FadeUp>
-            <h2 className="mt-6 font-display text-[clamp(2.75rem,7vw,6rem)] uppercase leading-[0.9] text-slate-900">
+            <h2 className="mt-4 font-display text-[clamp(2rem,5.5vw,4.5rem)] uppercase leading-[0.9] text-slate-900">
               <RevealLines lines={[<>From idea</>, <>to launch.</>]} />
             </h2>
 
-            {/* Vertical progress bar */}
-            <div className="mt-12 hidden items-center gap-4 md:flex">
-              <div className="relative h-48 w-[2px] overflow-hidden rounded-full bg-slate-200">
+            {/* Horizontal progress bar — compact */}
+            <div className="mt-6 hidden items-center gap-3 md:flex">
+              <div className="relative h-[2px] w-40 overflow-hidden rounded-full bg-slate-200">
                 <motion.div
-                  style={{ scaleY: scrollYProgress, transformOrigin: "50% 0%" }}
-                  className="absolute inset-0 bg-gradient-to-b from-sky-400 to-blue-700"
+                  style={{ scaleX: scrollYProgress, transformOrigin: "0% 50%" }}
+                  className="absolute inset-0 bg-gradient-to-r from-sky-400 to-blue-700"
                 />
               </div>
-              <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+              <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
                 Scroll to advance
-              </div>
+              </span>
             </div>
           </div>
 
-          {/* Right — stacked steps with scroll-driven reveal */}
+          {/* Right — stacked steps */}
           <div className="relative md:col-span-7">
-            <div className="relative h-[60vh] md:h-[70vh]">
+            <div className="relative h-[58vh] max-h-[440px] min-h-[280px] md:h-[60vh] md:max-h-[460px]">
               {STEPS.map((s, i) => (
                 <Step
                   key={s.n}
@@ -98,18 +98,17 @@ function Step({
   const start = index * slot;
   const peak = start + slot * 0.5;
   const end = (index + 1) * slot;
-
-  // Each card slides up from below, settles, then slides up & fades out for next.
   const isLast = index === total - 1;
+
   const y = useTransform(
     progress,
     [start, peak, end],
-    ["80%", "0%", isLast ? "0%" : "-30%"],
+    ["60%", "0%", isLast ? "0%" : "-25%"],
   );
   const opacity = useTransform(
     progress,
     [start, start + slot * 0.15, peak, end - 0.02, end],
-    [0, 1, 1, isLast ? 1 : 1, isLast ? 1 : 0],
+    [0, 1, 1, 1, isLast ? 1 : 0],
   );
   const scale = useTransform(progress, [start, peak, end], [0.96, 1, isLast ? 1 : 0.97]);
 
@@ -118,17 +117,17 @@ function Step({
       style={{ y, opacity, scale }}
       className="absolute inset-0 flex flex-col justify-center"
     >
-      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] md:p-12">
+      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] md:p-10">
         <div className="flex items-center justify-between">
           <span className="font-display text-sm tabular-nums text-sky-600">{step.n}</span>
-          <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
             Step {index + 1} of {total}
           </span>
         </div>
-        <h3 className="mt-6 font-display text-4xl uppercase leading-[0.95] text-slate-900 md:text-6xl">
+        <h3 className="mt-4 font-display text-[clamp(1.75rem,4vw,3.25rem)] uppercase leading-[0.95] text-slate-900">
           {step.title}
         </h3>
-        <p className="mt-6 max-w-lg text-base text-slate-600 md:text-lg">{step.desc}</p>
+        <p className="mt-4 max-w-lg text-sm text-slate-600 md:text-base">{step.desc}</p>
       </div>
     </motion.div>
   );

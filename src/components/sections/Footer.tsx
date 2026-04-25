@@ -32,7 +32,8 @@ export function Footer() {
               </li>
               <li>
                 <a href="mailto:hello@blutech.dev" className="inline-flex items-center gap-2 hover:text-sky-400">
-                  <Mail className="h-4 w-4" /> hello@blutech.dev
+                  <Mail className="h-4 w-4" />
+                  <span>hello@blutech.dev</span>
                 </a>
               </li>
             </ul>
