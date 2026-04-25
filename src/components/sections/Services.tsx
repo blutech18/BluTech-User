@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { Code2, Smartphone, Palette, Server, Sparkles } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { RevealLines, FadeUp } from "@/components/RevealText";
 
 const SERVICES = [
   {
@@ -50,20 +49,16 @@ export function Services() {
         <div className="mx-auto w-full max-w-[1500px] px-6">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end md:gap-6">
             <div>
-              <FadeUp>
-                <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600">
-                  / Services
-                </span>
-              </FadeUp>
+              <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600">
+                / Services
+              </span>
               <h2 className="mt-3 font-display text-[clamp(2.5rem,10vw,8rem)] uppercase leading-[0.9] text-slate-900 md:mt-4 md:text-[clamp(3rem,8.2vw,8rem)]">
-                <RevealLines lines={[<>What I Do.</>]} />
+                What I Do.
               </h2>
             </div>
-            <FadeUp delay={0.2}>
-              <p className="max-w-sm text-sm leading-relaxed text-slate-600 md:text-base">
-                Five focused practices, one partner. Scroll horizontally to explore.
-              </p>
-            </FadeUp>
+            <p className="max-w-sm text-sm leading-relaxed text-slate-600 md:text-base">
+              Five focused practices, one partner. Scroll horizontally to explore.
+            </p>
           </div>
           <div className="mt-4 flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500 md:mt-6">
             <span className="h-px w-10 bg-slate-300" />
