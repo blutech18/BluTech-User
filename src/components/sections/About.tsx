@@ -100,12 +100,12 @@ function Step({
   const y = useTransform(
     progress,
     [start, peak, end],
-    ["60%", "0%", isLast ? "0%" : "-25%"],
+    [index === 0 ? "0%" : "60%", "0%", isLast ? "0%" : "-25%"],
   );
   const opacity = useTransform(
     progress,
     [start, start + slot * 0.15, peak, end - 0.02, end],
-    [0, 1, 1, 1, isLast ? 1 : 0],
+    [index === 0 ? 1 : 0, 1, 1, 1, isLast ? 1 : 0],
   );
   const scale = useTransform(progress, [start, peak, end], [0.96, 1, isLast ? 1 : 0.97]);
 
