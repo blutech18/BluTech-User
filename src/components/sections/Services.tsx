@@ -1,5 +1,6 @@
+import { useRef } from "react";
 import { Code2, Smartphone, Palette, Server, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { RevealLines, FadeUp } from "@/components/RevealText";
 
 const SERVICES = [
@@ -36,35 +37,55 @@ const SERVICES = [
 ];
 
 export function Services() {
+  const targetRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: targetRef });
+  // Translate horizontally as we scroll the pinned section.
+  // 5 cards: travel ~ -72% to leave room.
+  const x = useTransform(scrollYProgress, [0, 1], ["2%", "-72%"]);
+
   return (
-    <section id="services" className="relative bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-24 md:py-40">
-        <div className="md:grid md:grid-cols-12 md:gap-16">
-          {/* Sticky left */}
-          <div className="md:col-span-5">
-            <div className="md:sticky md:top-32">
+    <section id="services" ref={targetRef} className="relative bg-white" style={{ height: "420vh" }}>
+      <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
+        {/* Header */}
+        <div className="mx-auto w-full max-w-[1500px] px-6 pt-24 md:pt-32">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+            <div>
               <FadeUp>
                 <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600">
                   / Services
                 </span>
               </FadeUp>
-              <h2 className="mt-6 font-display text-[clamp(3rem,8vw,7rem)] font-semibold leading-[0.95] tracking-[-0.03em] text-slate-900">
-                <RevealLines lines={[<>What</>, <>I Do.</>]} />
+              <h2 className="mt-4 font-display text-[clamp(3rem,9vw,9rem)] uppercase leading-[0.9] text-slate-900">
+                <RevealLines lines={[<>What I Do.</>]} />
               </h2>
-              <FadeUp delay={0.3}>
-                <p className="mt-8 max-w-md text-base text-slate-600 md:text-lg">
-                  Five focused practices, one partner. End-to-end commissions for
-                  founders, agencies, and teams who care about craft.
-                </p>
-              </FadeUp>
             </div>
+            <FadeUp delay={0.2}>
+              <p className="max-w-sm text-slate-600">
+                Five focused practices, one partner. Scroll horizontally to explore.
+              </p>
+            </FadeUp>
           </div>
+          <div className="mt-10 flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500">
+            <span className="h-px w-10 bg-slate-300" />
+            <span>Scroll →</span>
+          </div>
+        </div>
 
-          {/* Scrolling right */}
-          <div className="mt-16 space-y-6 md:col-span-7 md:mt-0">
+        {/* Horizontal track */}
+        <div className="relative mt-10 flex flex-1 items-center">
+          <motion.div style={{ x }} className="flex gap-8 px-6 md:gap-10 md:px-12">
             {SERVICES.map((s, i) => (
               <ServiceCard key={s.title} {...s} index={i} />
             ))}
+            <div className="w-[20vw] shrink-0" aria-hidden />
+          </motion.div>
+
+          {/* Progress bar */}
+          <div className="absolute bottom-10 left-1/2 h-[2px] w-64 -translate-x-1/2 overflow-hidden rounded-full bg-slate-200">
+            <motion.div
+              style={{ scaleX: scrollYProgress, transformOrigin: "0% 50%" }}
+              className="h-full w-full bg-gradient-to-r from-sky-400 to-blue-700"
+            />
           </div>
         </div>
       </div>
@@ -86,35 +107,36 @@ function ServiceCard({
   index: number;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: index * 0.05 }}
-      className="group relative rounded-3xl border border-slate-200 bg-white p-7 transition-all duration-500 hover:-translate-y-1 hover:border-sky-300 hover:shadow-[0_20px_60px_-20px_rgba(56,189,248,0.5)] md:p-9"
+    <div
+      className="group relative flex h-[60vh] w-[80vw] shrink-0 flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 transition-colors hover:border-sky-300 md:h-[68vh] md:w-[42vw] md:p-12"
     >
+      <div className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-sky-200/50 blur-3xl" />
+      </div>
       <div className="flex items-start justify-between">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 text-blue-700 transition-colors group-hover:from-sky-100 group-hover:to-blue-100">
-          <Icon className="h-5 w-5" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 to-blue-100 text-blue-700">
+          <Icon className="h-6 w-6" />
         </div>
-        <span className="text-xs font-medium tabular-nums text-slate-400">
-          0{index + 1}
+        <span className="font-display text-sm tabular-nums text-slate-300 md:text-base">
+          0{index + 1} / 0{SERVICES.length}
         </span>
       </div>
-      <h3 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
-        {title}
-      </h3>
-      <p className="mt-3 text-slate-600">{desc}</p>
-      <div className="mt-6 flex flex-wrap gap-2">
-        {tags.map((t) => (
-          <span
-            key={t}
-            className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600"
-          >
-            {t}
-          </span>
-        ))}
+      <div>
+        <h3 className="font-display text-4xl uppercase leading-[0.95] text-slate-900 md:text-6xl">
+          {title}
+        </h3>
+        <p className="mt-6 max-w-md text-base text-slate-600 md:text-lg">{desc}</p>
+        <div className="mt-8 flex flex-wrap gap-2">
+          {tags.map((t) => (
+            <span
+              key={t}
+              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
