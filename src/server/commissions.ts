@@ -2,6 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestIP } from "@tanstack/react-start/server";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
+import {
+  checkRateLimit,
+  isIpBlocked,
+  recordStrike,
+  sanitizeString,
+  hasSqlInjection,
+  isSpam,
+} from "./security";
+import { notifyNewCommission } from "./email";
 
 const PROJECT_TYPES = ["web", "app", "uiux", "backend", "automation", "other"] as const;
 
@@ -15,20 +24,6 @@ export const commissionSchema = z.object({
 
 export type CommissionInput = z.infer<typeof commissionSchema>;
 
-// Simple in-memory rate limit (per IP, 5 / 10min). Resets on cold start.
-const hits = new Map<string, { count: number; reset: number }>();
-function rateLimit(ip: string) {
-  const now = Date.now();
-  const entry = hits.get(ip);
-  if (!entry || entry.reset < now) {
-    hits.set(ip, { count: 1, reset: now + 10 * 60_000 });
-    return true;
-  }
-  if (entry.count >= 5) return false;
-  entry.count += 1;
-  return true;
-}
-
 let tableEnsured = false;
 
 export const submitCommission = createServerFn({ method: "POST" })
@@ -41,9 +36,37 @@ export const submitCommission = createServerFn({ method: "POST" })
     }
 
     const ip = getRequestIP({ xForwardedFor: true }) ?? "unknown";
-    if (!rateLimit(ip)) {
+
+    // 1. IP block check
+    if (isIpBlocked(ip)) {
       return { ok: false as const, error: "Too many requests. Try again later." };
     }
+
+    // 2. Rate limit
+    const limit = checkRateLimit(ip, "commission");
+    if (!limit.allowed) {
+      recordStrike(ip);
+      return { ok: false as const, error: "Too many requests. Try again later." };
+    }
+
+    // 3. SQL injection detection (defense in depth — queries are parameterized, but reject suspicious input)
+    const allInput = `${data.name} ${data.email} ${data.message} ${data.budget ?? ""}`;
+    if (hasSqlInjection(allInput)) {
+      recordStrike(ip);
+      return { ok: false as const, error: "Invalid input detected." };
+    }
+
+    // 4. Spam detection
+    if (isSpam(data.message) || isSpam(data.name)) {
+      recordStrike(ip);
+      return { ok: false as const, error: "Your message was flagged as spam." };
+    }
+
+    // 5. Sanitize all string inputs
+    const name = sanitizeString(data.name);
+    const email = data.email.toLowerCase().trim();
+    const message = sanitizeString(data.message);
+    const budget = data.budget ? sanitizeString(data.budget) : null;
 
     try {
       const sql = neon(url);
@@ -55,16 +78,28 @@ export const submitCommission = createServerFn({ method: "POST" })
           project_type text NOT NULL,
           budget text,
           message text NOT NULL,
-          created_at timestamptz NOT NULL DEFAULT now()
+          status text NOT NULL DEFAULT 'pending',
+          admin_notes text,
+          created_at timestamptz NOT NULL DEFAULT now(),
+          updated_at timestamptz NOT NULL DEFAULT now()
         )`;
         tableEnsured = true;
       }
       await sql`INSERT INTO commissions (name, email, project_type, budget, message)
-        VALUES (${data.name}, ${data.email}, ${data.projectType}, ${data.budget || null}, ${data.message})`;
+        VALUES (${name}, ${email}, ${data.projectType}, ${budget}, ${message})`;
+
+      // Send email notification (non-blocking — don't fail the request if email fails)
+      notifyNewCommission({
+        name,
+        email,
+        projectType: data.projectType,
+        budget,
+        message,
+      }).catch(() => {});
+
       return { ok: true as const };
     } catch (err) {
       console.error("submitCommission failed:", err);
       return { ok: false as const, error: "Could not save your request" };
     }
   });
-

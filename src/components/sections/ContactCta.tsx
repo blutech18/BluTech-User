@@ -7,18 +7,18 @@ interface Props {
 
 export function ContactCta({ onCtaClick }: Props) {
   return (
-    <section className="relative isolate overflow-hidden bg-gradient-to-b from-white to-sky-50">
+    <section className="relative isolate overflow-hidden bg-gradient-to-b from-white to-sky-50 dark:from-slate-900 dark:to-slate-950">
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-sky-300/40 via-sky-200/20 to-transparent blur-3xl"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-sky-300/40 via-sky-200/20 to-transparent blur-3xl dark:from-sky-600/20 dark:via-sky-800/10"
       />
       <div className="relative mx-auto max-w-5xl px-6 py-32 text-center md:py-48">
         <FadeUp>
-          <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600">
+          <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600 dark:text-sky-400">
             / Let's build
           </span>
         </FadeUp>
-        <h2 className="mt-6 font-display text-[clamp(2.75rem,9vw,8rem)] font-semibold leading-[0.92] tracking-[-0.04em] text-slate-900">
+        <h2 className="mt-6 font-display text-[clamp(2.75rem,9vw,8rem)] font-semibold leading-[0.92] tracking-[-0.04em] text-slate-900 dark:text-white">
           <RevealLines
             lines={[
               <>Have an idea?</>,
