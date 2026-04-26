@@ -37,7 +37,19 @@ export const Route = createRootRoute({
       },
       { name: "author", content: "BluTech" },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://blutechnology.org" },
+      { property: "og:title", content: "BluTech" },
+      {
+        property: "og:description",
+        content: "Freelance commissions by BluTech — web, app, UI/UX, backend, and AI work.",
+      },
+      { property: "og:image", content: "https://blutechnology.org/blutech-logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "BluTech" },
+      {
+        name: "twitter:description",
+        content: "Freelance commissions by BluTech — web, app, UI/UX, backend, and AI work.",
+      },
     ],
     links: [
       { rel: "icon", href: "/blutech-logo.png", type: "image/png" },

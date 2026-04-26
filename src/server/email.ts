@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const NOTIFY_EMAIL = "blutech18@gmail.com";
-const ADMIN_URL = process.env.ADMIN_URL || "http://localhost:5174";
+const ADMIN_URL = process.env.ADMIN_URL || "https://blutechnology.org/admin";
 
 function getResend(): Resend | null {
   const key = process.env.RESEND_API_KEY;
