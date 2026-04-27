@@ -29,14 +29,15 @@ const TYPE_LABELS: Record<string, string> = {
 export async function notifyNewCommission(data: CommissionData) {
   const resend = getResend();
   if (!resend) {
-    console.warn("RESEND_API_KEY not set — skipping email notification");
-    return;
+    const reason = "RESEND_API_KEY not set";
+    console.warn(`${reason} — skipping email notification`);
+    return { ok: false as const, reason };
   }
 
   const typeLabel = TYPE_LABELS[data.projectType] || data.projectType;
 
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: "BluTech <onboarding@resend.dev>",
       to: NOTIFY_EMAIL,
       subject: `New Commission: ${typeLabel} — ${data.name}`,
@@ -100,7 +101,14 @@ export async function notifyNewCommission(data: CommissionData) {
 </body>
 </html>`,
     });
+    if (result.error) {
+      const reason = result.error.message || "Unknown Resend error";
+      console.error("Email notification failed:", reason);
+      return { ok: false as const, reason };
+    }
+    return { ok: true as const };
   } catch (err) {
     console.error("Email notification failed:", err);
+    return { ok: false as const, reason: err instanceof Error ? err.message : "Unknown error" };
   }
 }

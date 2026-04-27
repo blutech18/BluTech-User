@@ -88,16 +88,19 @@ export const submitCommission = createServerFn({ method: "POST" })
       await sql`INSERT INTO commissions (name, email, project_type, budget, message)
         VALUES (${name}, ${email}, ${data.projectType}, ${budget}, ${message})`;
 
-      // Send email notification (non-blocking — don't fail the request if email fails)
-      notifyNewCommission({
+      // Send email notification, but do not fail the commission submission if email fails.
+      const emailResult = await notifyNewCommission({
         name,
         email,
         projectType: data.projectType,
         budget,
         message,
-      }).catch(() => {});
+      });
+      if (!emailResult.ok) {
+        console.warn("Commission saved but email notification failed:", emailResult.reason);
+      }
 
-      return { ok: true as const };
+      return { ok: true as const, emailNotified: emailResult.ok };
     } catch (err) {
       console.error("submitCommission failed:", err);
       return { ok: false as const, error: "Could not save your request" };
