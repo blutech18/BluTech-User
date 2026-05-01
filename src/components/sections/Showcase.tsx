@@ -5,14 +5,26 @@ import { ArrowUpRight, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFeaturedProjects } from "@/server/public-data";
 
+/** Format a date string (YYYY-MM-DD or any parseable format) into M/D/YY */
+function formatDate(raw: string): string {
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
+}
+
 interface ProjectCell {
   title: string;
   meta: string;
   description: string;
   className: string;
   gradient: string;
+  image_url?: string | null;
   stack: string[];
   about: string;
+  proof_image_url?: string | null;
+  client_number?: string;
+  service_type?: string;
+  transaction_date?: string;
 }
 
 function GitHubIcon() {
@@ -76,6 +88,7 @@ const FALLBACK_CELLS: ProjectCell[] = [
 
 export function Showcase() {
   const [active, setActive] = useState<ProjectCell | null>(null);
+  const [proofProject, setProofProject] = useState<ProjectCell | null>(null);
   const doFetch = useServerFn(fetchFeaturedProjects);
   const [cells, setCells] = useState(FALLBACK_CELLS);
 
@@ -88,24 +101,43 @@ export function Showcase() {
           description: r.description,
           className: "md:col-span-12",
           gradient: r.gradient,
+          image_url: r.image_url,
           stack: r.stack,
           about: r.about,
+          proof_image_url: r.proof_image_url,
+          client_number: r.client_number,
+          service_type: r.service_type,
+          transaction_date: r.transaction_date,
         })));
       }
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error("[Showcase] Failed to fetch featured projects:", err);
+    });
   }, []);
 
   const handleScrollToProjects = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.getElementById("projects");
     if (element) {
-      const headerOffset = 76;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
-      
-      globalThis.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
+      import("@/components/SmoothScroll").then(({ getLenis }) => {
+        const lenis = getLenis();
+        if (lenis) {
+          lenis.scrollTo(element, {
+            offset: -76,
+            duration: 1.5,
+            force: true,
+            lock: true
+          });
+        } else {
+          const headerOffset = 76;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
+          
+          globalThis.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+        }
       });
     }
   };
@@ -188,7 +220,8 @@ export function Showcase() {
         </div>
       </div>
 
-      <ProjectModal project={active} onClose={() => setActive(null)} />
+      <ProjectModal project={active} onClose={() => setActive(null)} onViewProof={(p) => { setActive(null); setProofProject(p); }} />
+      <ShowcaseProofModal project={proofProject} onClose={() => setProofProject(null)} />
     </section>
   );
 }
@@ -215,9 +248,17 @@ function BentoCard({
         <div className="relative h-full w-full rounded-3xl transition-transform duration-700 [transform-style:preserve-3d] [will-change:transform] group-hover:[transform:rotateX(180deg)]">
           {/* Front */}
           <div className="absolute inset-0 overflow-hidden rounded-3xl bg-slate-900 [backface-visibility:hidden] [transform:translateZ(0)]">
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${cell.gradient} transition-transform duration-700 group-hover:scale-[1.04]`}
-            />
+            {cell.image_url ? (
+              <img
+                src={cell.image_url}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                alt={cell.title}
+              />
+            ) : (
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${cell.gradient} transition-transform duration-700 group-hover:scale-[1.04]`}
+              />
+            )}
             <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay [background-image:radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] [background-size:24px_24px]" />
             <div className="absolute inset-0 bg-gradient-to-t from-blue-950/85 via-blue-900/10 to-transparent" />
             <div className="absolute inset-0 flex flex-col justify-between p-7 md:p-9">
@@ -242,10 +283,13 @@ function BentoCard({
             <div className="absolute inset-0 bg-blue-950/80" />
             <div className="absolute inset-0 flex flex-col p-7 md:p-9">
               <div className="text-xs font-medium uppercase tracking-[0.2em] text-sky-300">/ Stack</div>
-              <div className="mt-3 font-display text-3xl uppercase leading-[0.95] text-white md:text-4xl">
+              <div className="mt-2 font-display text-2xl uppercase leading-[0.95] text-white md:mt-3 md:text-3xl">
                 {cell.title}
               </div>
-              <div className="mt-5 flex flex-wrap gap-2">
+              <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-white/70 md:text-sm">
+                {cell.about}
+              </p>
+              <div className="mt-auto flex flex-wrap gap-2 pt-4">
                 {cell.stack.map((s) => (
                   <span
                     key={s}
@@ -263,7 +307,7 @@ function BentoCard({
   );
 }
 
-function ProjectModal({ project, onClose }: Readonly<{ project: ProjectCell | null; onClose: () => void }>) {
+function ProjectModal({ project, onClose, onViewProof }: Readonly<{ project: ProjectCell | null; onClose: () => void; onViewProof: (p: ProjectCell) => void }>) {
   return (
     <AnimatePresence>
       {project && (
@@ -282,7 +326,16 @@ function ProjectModal({ project, onClose }: Readonly<{ project: ProjectCell | nu
             className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`relative h-48 bg-gradient-to-br ${project.gradient}`}>
+            <div className="relative h-48 overflow-hidden bg-gradient-to-br">
+              {project.image_url ? (
+                <img
+                  src={project.image_url}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  alt={project.title}
+                />
+              ) : (
+                <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`} />
+              )}
               <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay [background-image:radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] [background-size:24px_24px]" />
               <button
                 onClick={onClose}
@@ -312,6 +365,115 @@ function ProjectModal({ project, onClose }: Readonly<{ project: ProjectCell | nu
                       {s}
                     </span>
                   ))}
+                </div>
+              </div>
+
+              {/* Proof of Transaction Button */}
+              {project.proof_image_url && (
+                <button
+                  onClick={() => onViewProof(project)}
+                  className="mt-6 inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-sky-600 transition-all hover:bg-sky-500/20 hover:border-sky-500/50 dark:text-sky-400 dark:hover:text-sky-300"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  View Proof of Transaction
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─── Proof of Transaction Modal for Showcase ─── */
+function ShowcaseProofModal({ project, onClose }: Readonly<{ project: ProjectCell | null; onClose: () => void }>) {
+  return (
+    <AnimatePresence>
+      {project && project.proof_image_url && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md dark:bg-slate-950/90"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ y: 40, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 30, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-full max-w-[420px] overflow-hidden rounded-3xl shadow-2xl shadow-slate-300/50 dark:shadow-sky-500/10 md:max-w-[740px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal background */}
+            <div className="relative bg-white dark:bg-[#070b1a]">
+              {/* Subtle gradient overlay */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-500/5 via-transparent to-blue-500/5 dark:to-blue-900/10" />
+
+              {/* Close button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition-colors hover:bg-slate-300 hover:text-slate-700 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20 dark:hover:text-white sm:right-4 sm:top-4"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* ── Mobile: stacked / Desktop: side-by-side ── */}
+              <div className="relative z-10 flex flex-col md:flex-row">
+                {/* Left — Image */}
+                <div className="flex flex-col items-center px-5 pt-6 md:w-1/2 md:px-8 md:py-8">
+                  {/* Logo — mobile only */}
+                  <div className="mb-5 flex justify-center md:hidden">
+                    <img src="/text-logo.png" alt="BluTech" className="h-10 w-auto object-contain" />
+                  </div>
+                  {/* Proof Screenshot */}
+                  <div className="relative h-[280px] w-[240px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-xl shadow-black/10 dark:border-white/10 dark:bg-[#0c1225] dark:shadow-black/30 sm:h-[340px] sm:w-[280px] md:h-[380px] md:w-full">
+                    <img src={project.proof_image_url} alt="Proof of transaction" className="h-full w-full object-cover" />
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <img src="/blutech-logo.png" alt="" className="h-32 w-32 object-contain opacity-15 sm:h-40 sm:w-40 md:h-48 md:w-48" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right — Details */}
+                <div className="flex flex-col justify-center px-5 pb-8 pt-6 md:w-1/2 md:px-8 md:py-8">
+                  {/* Logo — desktop only */}
+                  <div className="mb-6 hidden justify-center md:flex">
+                    <img src="/text-logo.png" alt="BluTech" className="h-12 w-auto object-contain" />
+                  </div>
+
+                  {/* Divider — mobile only */}
+                  <div className="mx-auto mb-5 h-px w-3/4 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent dark:via-sky-500/40 md:hidden" />
+
+                  {/* Client # and Date */}
+                  <div className="flex items-start justify-center gap-8 text-center md:gap-10">
+                    {project.client_number && (
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/50 sm:text-xs">Client#</p>
+                        <p className="mt-1 text-lg font-black text-sky-600 dark:text-sky-400 sm:text-xl md:text-2xl">{project.client_number}</p>
+                      </div>
+                    )}
+                    {project.transaction_date && (
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/50 sm:text-xs">Date</p>
+                        <p className="mt-1 text-lg font-black text-sky-600 dark:text-sky-400 sm:text-xl md:text-2xl">{formatDate(project.transaction_date)}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Divider — desktop only */}
+                  <div className="mx-auto my-5 hidden h-px w-3/4 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent dark:via-sky-500/40 md:block" />
+
+                  {/* Service Type */}
+                  {project.service_type && (
+                    <div className="mt-4 text-center md:mt-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/50 sm:text-xs">Service Type</p>
+                      <p className="mt-1 bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-lg font-black uppercase text-transparent dark:from-sky-400 dark:to-blue-400 sm:text-xl md:text-2xl">{project.service_type}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

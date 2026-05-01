@@ -28,10 +28,25 @@ async function ensureTables() {
     title text NOT NULL, category text NOT NULL, year text NOT NULL,
     description text NOT NULL, about text NOT NULL DEFAULT '', stack text[] NOT NULL DEFAULT '{}',
     gradient text NOT NULL DEFAULT 'from-sky-400 to-blue-600', meta text NOT NULL DEFAULT '',
+    image_url text,
     is_featured boolean NOT NULL DEFAULT false, is_active boolean NOT NULL DEFAULT true,
-    sort_order int NOT NULL DEFAULT 0, created_at timestamptz NOT NULL DEFAULT now(),
+    sort_order int NOT NULL DEFAULT 0, proof_image_url text,
+    client_number text NOT NULL DEFAULT '', service_type text NOT NULL DEFAULT '',
+    transaction_date text NOT NULL DEFAULT '',
+    created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+  // Add columns that may not exist on older tables (each is a no-op if column exists)
+  const migrations = [
+    sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS image_url text`,
+    sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS proof_image_url text`,
+    sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS client_number text NOT NULL DEFAULT ''`,
+    sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS service_type text NOT NULL DEFAULT ''`,
+    sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS transaction_date text NOT NULL DEFAULT ''`,
+  ];
+  for (const m of migrations) {
+    try { await m; } catch { /* column may already exist */ }
+  }
   tablesChecked = true;
 }
 
@@ -53,7 +68,12 @@ export interface ProjectRow {
   about: string;
   stack: string[];
   gradient: string;
+  image_url: string | null;
   meta: string;
+  proof_image_url: string | null;
+  client_number: string;
+  service_type: string;
+  transaction_date: string;
 }
 
 export const fetchServices = createServerFn({ method: "GET" }).handler(async () => {
@@ -70,7 +90,8 @@ export const fetchFeaturedProjects = createServerFn({ method: "GET" }).handler(a
   await ensureTables();
   const sql = getDb();
   const rows = await sql`
-    SELECT id, title, category, year, description, about, stack, gradient, meta
+    SELECT id, title, category, year, description, about, stack, gradient, image_url, meta,
+           proof_image_url, client_number, service_type, transaction_date
     FROM projects WHERE is_active = true AND is_featured = true
     ORDER BY sort_order ASC, created_at DESC
   `;
@@ -81,7 +102,8 @@ export const fetchAllProjects = createServerFn({ method: "GET" }).handler(async 
   await ensureTables();
   const sql = getDb();
   const rows = await sql`
-    SELECT id, title, category, year, description, about, stack, gradient
+    SELECT id, title, category, year, description, about, stack, gradient, image_url,
+           proof_image_url, client_number, service_type, transaction_date
     FROM projects WHERE is_active = true
     ORDER BY sort_order ASC, created_at DESC
   `;

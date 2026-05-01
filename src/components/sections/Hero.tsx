@@ -61,10 +61,22 @@ export function Hero({ onCtaClick }: Readonly<Props>) {
     e.preventDefault();
     const element = document.getElementById("work");
     if (element) {
-      const headerOffset = 76;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
-      globalThis.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      import("@/components/SmoothScroll").then(({ getLenis }) => {
+        const lenis = getLenis();
+        if (lenis) {
+          lenis.scrollTo(element, {
+            offset: -76,
+            duration: 1.5,
+            force: true,
+            lock: true
+          });
+        } else {
+          const headerOffset = 76;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
+          globalThis.scrollTo({ top: offsetPosition, behavior: "smooth" });
+        }
+      });
     }
   };
 

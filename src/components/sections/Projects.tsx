@@ -4,6 +4,13 @@ import { ArrowUpRight, X, ChevronDown } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchAllProjects } from "@/server/public-data";
 
+/** Format a date string (YYYY-MM-DD or any parseable format) into M/D/YY */
+function formatDate(raw: string): string {
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw; // fallback to raw if unparseable
+  return `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
+}
+
 interface Project {
   title: string;
   category: string;
@@ -11,7 +18,12 @@ interface Project {
   description: string;
   stack: string[];
   gradient: string;
+  image_url?: string | null;
   about: string;
+  proof_image_url?: string | null;
+  client_number?: string;
+  service_type?: string;
+  transaction_date?: string;
 }
 
 const FALLBACK_PROJECTS: Project[] = [
@@ -94,6 +106,7 @@ const INITIAL_COUNT = 4;
 export function Projects() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [proofProject, setProofProject] = useState<Project | null>(null);
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
   const [allProjects, setAllProjects] = useState(FALLBACK_PROJECTS);
   const doFetch = useServerFn(fetchAllProjects);
@@ -108,10 +121,17 @@ export function Projects() {
           description: r.description,
           stack: r.stack,
           gradient: r.gradient,
+          image_url: r.image_url,
           about: r.about,
+          proof_image_url: r.proof_image_url,
+          client_number: r.client_number,
+          service_type: r.service_type,
+          transaction_date: r.transaction_date,
         })));
       }
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error("[Projects] Failed to fetch projects:", err);
+    });
   }, []);
 
   useScroll({
@@ -174,6 +194,7 @@ export function Projects() {
               project={project}
               index={index}
               onOpen={() => setActiveProject(project)}
+              onViewProof={() => setProofProject(project)}
             />
           ))}
         </div>
@@ -202,6 +223,9 @@ export function Projects() {
 
       {/* Project Modal */}
       <ProjectModal project={activeProject} onClose={() => setActiveProject(null)} />
+
+      {/* Proof of Transaction Modal */}
+      <ProofModal project={proofProject} onClose={() => setProofProject(null)} />
     </section>
   );
 }
@@ -210,10 +234,12 @@ function ProjectCard({
   project,
   index,
   onOpen,
+  onViewProof,
 }: Readonly<{
   project: Project;
   index: number;
   onOpen: () => void;
+  onViewProof: () => void;
 }>) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-100px" });
@@ -237,8 +263,16 @@ function ProjectCard({
       className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white backdrop-blur-sm transition-colors hover:border-sky-500/30 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-sky-500/30 dark:hover:bg-white/10"
     >
       {/* Image placeholder with gradient */}
-      <div className={`relative h-40 bg-gradient-to-br ${project.gradient} md:h-48`}>
-        <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay [background-image:radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] [background-size:24px_24px]" />
+      <div className={`relative h-40 overflow-hidden bg-gradient-to-br ${project.gradient} md:h-48`}>
+        {project.image_url ? (
+          <img
+            src={project.image_url}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+            alt={project.title}
+          />
+        ) : (
+          <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay [background-image:radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] [background-size:24px_24px]" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-transparent dark:from-[#080d19] dark:via-[#080d19]/70 dark:to-transparent" />
         
         {/* Category and year badge on image */}
@@ -279,6 +313,22 @@ function ProjectCard({
             </span>
           ))}
         </div>
+
+        {/* Proof of Transaction Button */}
+        {project.proof_image_url && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewProof();
+            }}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-sky-600 transition-all hover:bg-sky-500/20 hover:border-sky-500/50 dark:text-sky-400 dark:hover:text-sky-300"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            View Proof of Transaction
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -354,6 +404,102 @@ function ProjectModal({ project, onClose }: Readonly<{ project: Project | null; 
                       {s}
                     </span>
                   ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─── Proof of Transaction Modal — matches the BluTech branded design ─── */
+function ProofModal({ project, onClose }: Readonly<{ project: Project | null; onClose: () => void }>) {
+  return (
+    <AnimatePresence>
+      {project && project.proof_image_url && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md dark:bg-slate-950/90"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ y: 40, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 30, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-full max-w-[420px] overflow-hidden rounded-3xl shadow-2xl shadow-slate-300/50 dark:shadow-sky-500/10 md:max-w-[740px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal background */}
+            <div className="relative bg-white dark:bg-[#070b1a]">
+              {/* Subtle gradient overlay */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-500/5 via-transparent to-blue-500/5 dark:to-blue-900/10" />
+
+              {/* Close button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition-colors hover:bg-slate-300 hover:text-slate-700 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20 dark:hover:text-white sm:right-4 sm:top-4"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* ── Mobile: stacked / Desktop: side-by-side ── */}
+              <div className="relative z-10 flex flex-col md:flex-row">
+                {/* Left — Image */}
+                <div className="flex flex-col items-center px-5 pt-6 md:w-1/2 md:px-8 md:py-8">
+                  {/* Logo — mobile only */}
+                  <div className="mb-5 flex justify-center md:hidden">
+                    <img src="/text-logo.png" alt="BluTech" className="h-10 w-auto object-contain" />
+                  </div>
+                  {/* Proof Screenshot */}
+                  <div className="relative h-[280px] w-[240px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-xl shadow-black/10 dark:border-white/10 dark:bg-[#0c1225] dark:shadow-black/30 sm:h-[340px] sm:w-[280px] md:h-[380px] md:w-full">
+                    <img src={project.proof_image_url} alt="Proof of transaction" className="h-full w-full object-cover" />
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <img src="/blutech-logo.png" alt="" className="h-32 w-32 object-contain opacity-15 sm:h-40 sm:w-40 md:h-48 md:w-48" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right — Details */}
+                <div className="flex flex-col justify-center px-5 pb-8 pt-6 md:w-1/2 md:px-8 md:py-8">
+                  {/* Logo — desktop only */}
+                  <div className="mb-6 hidden justify-center md:flex">
+                    <img src="/text-logo.png" alt="BluTech" className="h-12 w-auto object-contain" />
+                  </div>
+
+                  {/* Divider — mobile only */}
+                  <div className="mx-auto mb-5 h-px w-3/4 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent dark:via-sky-500/40 md:hidden" />
+
+                  {/* Client # and Date */}
+                  <div className="flex items-start justify-center gap-8 text-center md:gap-10">
+                    {project.client_number && (
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/50 sm:text-xs">Client#</p>
+                        <p className="mt-1 text-lg font-black text-sky-600 dark:text-sky-400 sm:text-xl md:text-2xl">{project.client_number}</p>
+                      </div>
+                    )}
+                    {project.transaction_date && (
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/50 sm:text-xs">Date</p>
+                        <p className="mt-1 text-lg font-black text-sky-600 dark:text-sky-400 sm:text-xl md:text-2xl">{formatDate(project.transaction_date)}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Divider — desktop only */}
+                  <div className="mx-auto my-5 hidden h-px w-3/4 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent dark:via-sky-500/40 md:block" />
+
+                  {/* Service Type */}
+                  {project.service_type && (
+                    <div className="mt-4 text-center md:mt-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/50 sm:text-xs">Service Type</p>
+                      <p className="mt-1 bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-lg font-black uppercase text-transparent dark:from-sky-400 dark:to-blue-400 sm:text-xl md:text-2xl">{project.service_type}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

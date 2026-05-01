@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import { getLenis } from "@/components/SmoothScroll";
 
 interface NavProps {
   onCtaClick: () => void;
@@ -18,31 +19,39 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
     e.preventDefault();
     e.stopPropagation();
     
-    // Clear any existing timeout to prevent stale locks
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = null;
     }
     
-    // Immediately set active section on click and lock it
     setActiveSection(targetId);
     clickedSectionRef.current = targetId;
     
     const element = document.getElementById(targetId);
     if (element) {
-      const headerOffset = 76;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.scrollTo(element, {
+          offset: -76,
+          duration: 1.5,
+          force: true,
+          lock: true,
+          onComplete: () => {
+            clickedSectionRef.current = null;
+          },
+        });
+      } else {
+        // Fallback if Lenis isn't available
+        const headerOffset = 76;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
+        globalThis.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      }
       
-      globalThis.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
-      
-      // Set a longer timeout for the lock to ensure scroll completes
+      // Safety timeout in case onComplete doesn't fire
       scrollTimeoutRef.current = globalThis.setTimeout(() => {
         clickedSectionRef.current = null;
-      }, 1000);
+      }, 3000);
     }
   }, []);
 

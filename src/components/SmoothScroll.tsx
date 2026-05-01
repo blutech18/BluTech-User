@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 
+// Expose Lenis instance for programmatic scrolling (Nav, anchor links, etc.)
+let lenisInstance: Lenis | null = null;
+export function getLenis() {
+  return lenisInstance;
+}
+
 export function SmoothScroll() {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -12,6 +18,8 @@ export function SmoothScroll() {
       smoothWheel: true,
     });
 
+    lenisInstance = lenis;
+
     let rafId = 0;
     const raf = (time: number) => {
       lenis.raf(time);
@@ -22,6 +30,7 @@ export function SmoothScroll() {
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      lenisInstance = null;
     };
   }, []);
 
