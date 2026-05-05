@@ -84,7 +84,7 @@ export function Hero({ onCtaClick }: Readonly<Props>) {
     <section
       ref={ref}
       id="top"
-      className="relative isolate min-h-[100svh] overflow-hidden pt-32 pb-16 md:pt-36 md:pb-24 dark:bg-slate-950"
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden pt-24 dark:bg-slate-950"
     >
       <Orbs />
 
@@ -123,10 +123,12 @@ export function Hero({ onCtaClick }: Readonly<Props>) {
 
       <motion.div
         style={isDesktop ? { opacity, y, scale } : { opacity }}
-        className="relative z-10 mx-auto max-w-[1400px] px-6"
+        className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6"
       >
-        {/* Top meta row */}
-        <FadeUp>
+        {/* Main content wrapper for vertical centering */}
+        <div className="flex flex-1 flex-col justify-center pb-12 pt-6 md:pb-20 md:pt-10">
+          {/* Top meta row */}
+          <FadeUp>
           <div className="flex flex-wrap items-center justify-center gap-4 lg:justify-between">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
               <span className="relative flex h-1.5 w-1.5">
@@ -169,7 +171,7 @@ export function Hero({ onCtaClick }: Readonly<Props>) {
         </div>
 
         {/* CTA buttons */}
-        <div className="mt-12 md:mt-20">
+        <div className="mt-10 md:mt-16">
           <FadeUp delay={0.5}>
             <div className="flex flex-wrap items-center justify-center gap-4 lg:justify-start">
               <GradientButton onClick={onCtaClick}>Start a Project</GradientButton>
@@ -183,9 +185,10 @@ export function Hero({ onCtaClick }: Readonly<Props>) {
             </div>
           </FadeUp>
         </div>
+        </div>
 
         {/* Scroll cue */}
-        <div className="mt-20 flex items-center justify-center text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 md:mt-28">
+        <div className="flex items-center justify-center pb-8 text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 md:pb-12">
           <div className="flex items-center gap-2">
             <ArrowDown className="h-3.5 w-3.5 animate-bounce" />
             Scroll

@@ -183,13 +183,12 @@ export function Showcase() {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-              className="flex flex-col items-center gap-3 pt-4 sm:flex-row sm:justify-between"
+              className="flex w-full flex-row flex-wrap items-center justify-between gap-3 pt-4"
             >
               <a
                 href="#projects"
                 onClick={handleScrollToProjects}
-                className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-400 to-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-[0_10px_40px_-10px_rgba(29,78,216,0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-10px_rgba(29,78,216,0.7)] sm:px-7 sm:py-3.5 sm:text-base dark:shadow-[0_10px_40px_-10px_rgba(56,189,248,0.4)] dark:hover:shadow-[0_18px_60px_-10px_rgba(56,189,248,0.5)]"
+                className="group relative inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-400 to-blue-700 px-4 py-2.5 text-sm font-medium text-white shadow-[0_10px_40px_-10px_rgba(29,78,216,0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-10px_rgba(29,78,216,0.7)] sm:px-6 sm:py-3 sm:text-base dark:shadow-[0_10px_40px_-10px_rgba(56,189,248,0.4)] dark:hover:shadow-[0_18px_60px_-10px_rgba(56,189,248,0.5)]"
               >
                 <span className="relative z-10">View All Projects</span>
                 <ArrowUpRight className="relative z-10 h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -200,7 +199,7 @@ export function Showcase() {
                   href="https://github.com/blutech18"
                   target="_blank"
                   rel="noreferrer"
-                  className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/80 bg-white/70 px-3 py-2 text-xs font-medium text-slate-700 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-black/25 hover:bg-black/5 hover:text-black sm:gap-2 sm:px-5 sm:py-3 sm:text-sm dark:border-slate-600 dark:bg-slate-800/40 dark:text-slate-200 dark:hover:border-white/30 dark:hover:bg-white/10 dark:hover:text-white"
+                  className="group inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300/80 bg-white/70 px-4 py-2.5 text-sm font-medium text-slate-700 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-black/25 hover:bg-black/5 hover:text-black sm:gap-2 sm:px-5 sm:py-3 sm:text-base dark:border-slate-600 dark:bg-slate-800/40 dark:text-slate-200 dark:hover:border-white/30 dark:hover:bg-white/10 dark:hover:text-white"
                 >
                   <GitHubIcon />
                   <span className="relative z-10">Github</span>
@@ -209,7 +208,7 @@ export function Showcase() {
                   href="https://www.linkedin.com/in/cjjumawan/"
                   target="_blank"
                   rel="noreferrer"
-                  className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/80 bg-white/70 px-3 py-2 text-xs font-medium text-[#0A66C2] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0A66C2]/55 hover:bg-[#0A66C2]/12 hover:text-[#004182] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm dark:border-slate-600 dark:bg-slate-800/40 dark:text-[#8ec6ff] dark:hover:border-[#0A66C2]/70 dark:hover:bg-[#0A66C2]/25 dark:hover:text-white"
+                  className="group inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300/80 bg-white/70 px-4 py-2.5 text-sm font-medium text-[#0A66C2] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0A66C2]/55 hover:bg-[#0A66C2]/12 hover:text-[#004182] sm:gap-2 sm:px-5 sm:py-3 sm:text-base dark:border-slate-600 dark:bg-slate-800/40 dark:text-[#8ec6ff] dark:hover:border-[#0A66C2]/70 dark:hover:bg-[#0A66C2]/25 dark:hover:text-white"
                 >
                   <LinkedInIcon />
                   <span className="relative z-10">Linkedin</span>

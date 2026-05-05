@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, AnimatePresence, useInView } from "framer-motion";
-import { ArrowUpRight, X, ChevronDown } from "lucide-react";
+import { ArrowUpRight, X, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchAllProjects } from "@/server/public-data";
+import { getLenis } from "@/components/SmoothScroll";
 
 /** Format a date string (YYYY-MM-DD or any parseable format) into M/D/YY */
 function formatDate(raw: string): string {
@@ -108,6 +109,7 @@ export function Projects() {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [proofProject, setProofProject] = useState<Project | null>(null);
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+  const [isAllProjectsModalOpen, setIsAllProjectsModalOpen] = useState(false);
   const [allProjects, setAllProjects] = useState(FALLBACK_PROJECTS);
   const doFetch = useServerFn(fetchAllProjects);
 
@@ -187,38 +189,80 @@ export function Projects() {
         </div>
 
         {/* Projects Grid with staggered reveal */}
-        <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
-          {visibleProjects.map((project, index) => (
-            <ProjectCard
-              key={project.title}
-              project={project}
-              index={index}
-              onOpen={() => setActiveProject(project)}
-              onViewProof={() => setProofProject(project)}
-            />
-          ))}
-        </div>
+        <motion.div id="projects-grid" layout className="grid gap-6 md:grid-cols-2 lg:gap-8">
+          <AnimatePresence mode="popLayout">
+            {visibleProjects.map((project, index) => (
+              <ProjectCard
+                key={project.title}
+                id={`project-card-${index}`}
+                project={project}
+                index={index}
+                onOpen={() => setActiveProject(project)}
+                onViewProof={() => setProofProject(project)}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
 
-        {/* Load More */}
-        {hasMore && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-16 flex flex-col items-center gap-2 text-center md:mt-24"
-          >
+        {/* Load More & Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-10 flex flex-col items-center gap-6 text-center md:mt-14 w-full"
+        >
+          <div id="projects-action-bar" className="flex w-full flex-row flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-3">
+              {hasMore && (
+                <button
+                  onClick={() => setVisibleCount((prev) => Math.min(prev + 4, allProjects.length))}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  View More
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              )}
+              {visibleCount > 4 && (
+                <button
+                  onClick={() => {
+                    const newCount = Math.max(visibleCount - 4, 4);
+                    setVisibleCount(newCount);
+                    setTimeout(() => {
+                      const lastCardId = `project-card-${newCount - 1}`;
+                      const el = document.getElementById(lastCardId);
+                      if (el) {
+                        const lenis = getLenis();
+                        if (lenis) {
+                          lenis.scrollTo(el, { offset: -120, duration: 0.8 });
+                        } else {
+                          el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }
+                    }, 150);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  View Less
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
             <button
-              onClick={() => setVisibleCount(allProjects.length)}
+              onClick={() => setIsAllProjectsModalOpen(true)}
               className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-6 py-3 text-sm font-medium text-sky-600 transition-colors hover:bg-sky-500/20 dark:text-sky-400"
             >
-              View all projects
-              <ChevronDown className="h-4 w-4" />
+              Search All Projects
+              <Search className="h-4 w-4" />
             </button>
+          </div>
+          
+          {hasMore && (
             <span className="text-xs text-slate-500 dark:text-slate-500">
-              {allProjects.length - visibleCount} more
+              Showing {visibleCount} of {allProjects.length} projects
             </span>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
       </div>
 
       {/* Project Modal */}
@@ -226,20 +270,33 @@ export function Projects() {
 
       {/* Proof of Transaction Modal */}
       <ProofModal project={proofProject} onClose={() => setProofProject(null)} />
+
+      {/* All Projects Modal with Search */}
+      <AllProjectsModal
+        isOpen={isAllProjectsModalOpen}
+        onClose={() => setIsAllProjectsModalOpen(false)}
+        projects={allProjects}
+        onOpenProject={(p) => setActiveProject(p)}
+        onViewProof={(p) => setProofProject(p)}
+      />
     </section>
   );
 }
 
 function ProjectCard({
+  id,
   project,
   index,
   onOpen,
   onViewProof,
+  isCompact = false,
 }: Readonly<{
+  id?: string;
   project: Project;
   index: number;
   onOpen: () => void;
   onViewProof: () => void;
+  isCompact?: boolean;
 }>) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-100px" });
@@ -250,9 +307,12 @@ function ProjectCard({
 
   return (
     <motion.div
+      id={id}
+      layout
       ref={cardRef}
       initial={{ opacity: 0, x: isEven ? -50 : 50, rotateY: isEven ? -5 : 5 }}
       animate={isInView ? { opacity: 1, x: 0, rotateY: 0 } : {}}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{
         duration: 0.8,
         delay,
@@ -263,7 +323,7 @@ function ProjectCard({
       className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white backdrop-blur-sm transition-colors hover:border-sky-500/30 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-sky-500/30 dark:hover:bg-white/10"
     >
       {/* Image placeholder with gradient */}
-      <div className={`relative h-40 overflow-hidden bg-gradient-to-br ${project.gradient} md:h-48`}>
+      <div className={`relative overflow-hidden bg-gradient-to-br ${project.gradient} ${isCompact ? 'h-28 sm:h-32 md:h-40' : 'h-40 md:h-48'}`}>
         {project.image_url ? (
           <img
             src={project.image_url}
@@ -292,26 +352,31 @@ function ProjectCard({
       </div>
 
       {/* Content */}
-      <div className="p-5 md:p-6">
-        <h3 className="font-display text-xl uppercase text-slate-900 md:text-2xl dark:text-white">
+      <div className={`p-4 ${isCompact ? 'md:p-5' : 'md:p-6'}`}>
+        <h3 className={`font-display uppercase text-slate-900 dark:text-white line-clamp-2 break-words ${isCompact ? 'text-lg sm:text-xl' : 'text-xl md:text-2xl'}`}>
           {project.title}
         </h3>
 
         {/* Description */}
-        <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+        <p className={`mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400 ${isCompact ? 'line-clamp-2' : ''}`}>
           {project.description}
         </p>
 
         {/* Stack tags */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {project.stack.map((tech) => (
+        <div className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
+          {project.stack.slice(0, isCompact ? 2 : 4).map((tech) => (
             <span
               key={tech}
-              className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+              className="whitespace-nowrap rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 sm:px-3 sm:py-1 sm:text-xs"
             >
               {tech}
             </span>
           ))}
+          {project.stack.length > (isCompact ? 2 : 4) && (
+            <span className="whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:border-white/5 dark:bg-white/5 dark:text-slate-400 sm:px-2 sm:py-1 sm:text-xs">
+              +{project.stack.length - (isCompact ? 2 : 4)}
+            </span>
+          )}
         </div>
 
         {/* Proof of Transaction Button */}
@@ -342,7 +407,7 @@ function ProjectModal({ project, onClose }: Readonly<{ project: Project | null; 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm dark:bg-slate-950/80"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm dark:bg-slate-950/80"
           onClick={onClose}
         >
           <motion.div
@@ -423,7 +488,7 @@ function ProofModal({ project, onClose }: Readonly<{ project: Project | null; on
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md dark:bg-slate-950/90"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md dark:bg-slate-950/90"
           onClick={onClose}
         >
           <motion.div
@@ -502,6 +567,131 @@ function ProofModal({ project, onClose }: Readonly<{ project: Project | null; on
                   )}
                 </div>
               </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─── All Projects Search Modal ─── */
+function AllProjectsModal({
+  isOpen,
+  onClose,
+  projects,
+  onOpenProject,
+  onViewProof,
+}: Readonly<{
+  isOpen: boolean;
+  onClose: () => void;
+  projects: Project[];
+  onOpenProject: (p: Project) => void;
+  onViewProof: (p: Project) => void;
+}>) {
+  const [query, setQuery] = useState("");
+
+  // Lock body scroll when open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  const filtered = projects.filter((p) => {
+    const q = query.toLowerCase();
+    return (
+      p.title.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      (p.about && p.about.toLowerCase().includes(q)) ||
+      p.stack.some((s) => s.toLowerCase().includes(q)) ||
+      (p.service_type && p.service_type.toLowerCase().includes(q))
+    );
+  });
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm md:p-6"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ y: 30, opacity: 0, scale: 0.97 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 20, opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="relative flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-2xl dark:border-slate-800 dark:bg-slate-950"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header / Search Area */}
+            <div className="flex flex-col gap-4 border-b border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center md:p-6">
+              <div className="flex items-center justify-between sm:hidden">
+                <h3 className="font-display text-lg uppercase text-slate-900 dark:text-white">All Projects</h3>
+                <button
+                  onClick={onClose}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by title, description, or tech stack (e.g., Packet Tracer, React)..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  autoFocus
+                />
+              </div>
+              <button
+                onClick={onClose}
+                className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 sm:flex"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="custom-scrollbar flex-1 overflow-y-auto p-4 md:p-6" data-lenis-prevent>
+              {filtered.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+                  {filtered.map((project, index) => (
+                    <ProjectCard
+                      key={project.title}
+                      project={project}
+                      index={index}
+                      isCompact={true}
+                      onOpen={() => {
+                        onOpenProject(project);
+                      }}
+                      onViewProof={() => {
+                        onViewProof(project);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800">
+                    <Search className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-medium text-slate-900 dark:text-white">No projects found</h3>
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    Try adjusting your search query to find what you're looking for.
+                  </p>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
