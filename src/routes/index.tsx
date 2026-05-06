@@ -9,6 +9,7 @@ import { Showcase } from "@/components/sections/Showcase";
 import { About } from "@/components/sections/About";
 import { AboutBluTech } from "@/components/sections/AboutBluTech";
 import { Projects } from "@/components/sections/Projects";
+import { Pricing } from "@/components/sections/Pricing";
 import { ContactCta } from "@/components/sections/ContactCta";
 import { Footer } from "@/components/sections/Footer";
 import { ContactModal } from "@/components/ContactModal";
@@ -45,6 +46,7 @@ function Index() {
         <Hero onCtaClick={openModal} />
         <Marquee />
         <Services />
+        <Pricing />
         <Showcase />
         <About />
         <AboutBluTech />

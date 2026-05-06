@@ -143,12 +143,12 @@ export function Showcase() {
   };
 
   return (
-    <section id="work" className="relative bg-[#F8FAFC] dark:bg-slate-900">
+    <section id="work" className="relative bg-white dark:bg-slate-950" style={{ overflowX: 'clip' }}>
       <div className="mx-auto max-w-7xl px-6 py-24 md:py-40">
         <div className="md:grid md:grid-cols-12 md:gap-16">
-          {/* Sticky left rail (was Services style) */}
+          {/* Sticky left rail */}
           <div className="md:col-span-5">
-            <div className="md:sticky md:top-32">
+            <div className="md:sticky md:top-[108px]">
               <FadeUp>
                 <span className="text-xs font-medium uppercase tracking-[0.2em] text-sky-600 dark:text-sky-400">
                   / Selected Work

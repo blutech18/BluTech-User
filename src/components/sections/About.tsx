@@ -35,7 +35,7 @@ export function About() {
     <section
       id="about"
       ref={ref}
-      className="relative bg-white dark:bg-slate-950"
+      className="relative bg-[#F8FAFC] dark:bg-slate-900"
       style={{ height: `${100 + STEPS.length * 50}svh` }}
     >
       <div className="sticky top-[76px] flex h-[calc(100svh-76px)] items-center overflow-hidden py-6 md:py-8">

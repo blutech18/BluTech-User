@@ -35,25 +35,28 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
       if (lenis) {
         lenis.scrollTo(element, {
           offset: -76,
-          duration: 1.5,
-          force: true,
-          lock: true,
+          duration: 1.2,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
           onComplete: () => {
             clickedSectionRef.current = null;
           },
         });
       } else {
-        // Fallback if Lenis isn't available
         const headerOffset = 76;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + globalThis.scrollY - headerOffset;
-        globalThis.scrollTo({ top: offsetPosition, behavior: "smooth" });
+        const rect = element.getBoundingClientRect();
+        const top = rect.top + globalThis.scrollY - headerOffset;
+        globalThis.scrollTo({ top, behavior: "smooth" });
+        
+        // Safety for fallback
+        setTimeout(() => {
+          clickedSectionRef.current = null;
+        }, 1000);
       }
       
-      // Safety timeout in case onComplete doesn't fire
+      // Secondary safety timeout
       scrollTimeoutRef.current = globalThis.setTimeout(() => {
         clickedSectionRef.current = null;
-      }, 3000);
+      }, 2000);
     }
   }, []);
 
@@ -67,7 +70,7 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
       }
 
       // Determine active section based on scroll position
-      const sections = ["top", "services", "work", "about", "projects"];
+      const sections = ["top", "services", "pricing", "work", "about", "projects"];
       const headerOffset = 100;
       
       for (const sectionId of [...sections].reverse()) {
@@ -95,6 +98,7 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
   const navLinks = [
     { id: "top", label: "Home" },
     { id: "services", label: "Services" },
+    { id: "pricing", label: "Pricing" },
     { id: "work", label: "Work" },
     { id: "about", label: "About" },
     { id: "projects", label: "Projects" },
@@ -113,8 +117,8 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
           />
         )}
       </AnimatePresence>
-      <nav className="relative mx-auto flex max-w-7xl items-center justify-between py-4 pl-4 pr-6 sm:pl-6 sm:pr-10 md:pl-12 md:pr-[4.25rem]">
-        <div className="flex items-center gap-1 sm:gap-4">
+      <nav className="relative mx-auto flex max-w-7xl items-center justify-between py-4 px-4 sm:px-6 md:px-12">
+        <div className="flex items-center gap-1.5 sm:gap-4">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -124,10 +128,10 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
           <a 
             href="#top" 
             onClick={(e) => handleScrollTo(e, "top")}
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-2"
           >
-            <img src="/blutech-logo.png" alt="BluTech" className="h-10 w-10 object-contain" />
-            <span className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">BluTech</span>
+            <img src="/blutech-logo.png" alt="BluTech" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
+            <span className="hidden sm:inline-block text-lg font-semibold tracking-tight text-slate-900 dark:text-white">BluTech</span>
           </a>
         </div>
         <div className="relative hidden items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300 md:flex">
@@ -151,7 +155,7 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
             </a>
           ))}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={toggleTheme}
             className="relative flex h-6 w-6 items-center justify-center overflow-hidden"
@@ -176,7 +180,7 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
           </button>
           <button
             onClick={onCtaClick}
-            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500"
+            className="rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 sm:px-5 sm:text-sm"
           >
             Get in touch
           </button>
@@ -193,13 +197,13 @@ export function Nav({ onCtaClick }: Readonly<NavProps>) {
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="absolute left-0 right-0 top-full z-40 overflow-hidden border-b border-slate-200/60 bg-white/95 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/95 md:hidden"
           >
-            <div className="flex w-full flex-row items-center gap-1.5 px-5 py-4 sm:gap-3 sm:px-8">
+            <div className="grid grid-cols-3 gap-2 p-4 sm:flex sm:flex-row sm:gap-3 sm:px-8">
               {navLinks.map((link) => (
                 <a
                   key={link.id}
                   href={`#${link.id}`}
                   onClick={(e) => handleScrollTo(e, link.id)}
-                  className={`flex flex-1 items-center justify-center whitespace-nowrap rounded-full px-1 py-2 text-[12px] font-medium transition-colors sm:px-2 sm:text-sm ${
+                  className={`flex items-center justify-center whitespace-nowrap rounded-full py-2.5 text-[11px] font-medium transition-colors sm:flex-1 sm:px-2 sm:text-sm ${
                     activeSection === link.id
                       ? "bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"

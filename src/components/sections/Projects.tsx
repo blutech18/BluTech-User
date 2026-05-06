@@ -145,7 +145,7 @@ export function Projects() {
   const visibleProjects = allProjects.slice(0, visibleCount);
 
   return (
-    <section id="projects" ref={containerRef} className="relative bg-slate-50 py-24 md:py-40 dark:bg-slate-950">
+    <section id="projects" ref={containerRef} className="relative overflow-x-hidden bg-[#F8FAFC] py-24 md:py-40 dark:bg-slate-900">
       {/* Animated background gradient */}
       <motion.div
         className="pointer-events-none absolute inset-0 opacity-30"
@@ -211,8 +211,8 @@ export function Projects() {
           viewport={{ once: true }}
           className="mt-10 flex flex-col items-center gap-6 text-center md:mt-14 w-full"
         >
-          <div id="projects-action-bar" className="flex w-full flex-row flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap gap-3">
+          <div id="projects-action-bar" className="flex w-full flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap justify-center gap-3">
               {hasMore && (
                 <button
                   onClick={() => setVisibleCount((prev) => Math.min(prev + 4, allProjects.length))}
@@ -310,7 +310,7 @@ function ProjectCard({
       id={id}
       layout
       ref={cardRef}
-      initial={{ opacity: 0, x: isEven ? -50 : 50, rotateY: isEven ? -5 : 5 }}
+      initial={{ opacity: 0, x: isEven ? -20 : 20, y: 20 }}
       animate={isInView ? { opacity: 1, x: 0, rotateY: 0 } : {}}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{

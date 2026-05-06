@@ -31,7 +31,7 @@ export function Services() {
       if (rows && rows.length > 0) {
         setServices(rows.map((r) => ({ icon: r.icon, title: r.title, description: r.description, tags: r.tags })));
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const totalServices = services.length;
