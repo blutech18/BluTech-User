@@ -66,8 +66,8 @@ export function Services() {
         </div>
 
         {/* Horizontal track */}
-        <div className="relative mt-4 flex min-h-0 flex-1 items-center md:items-stretch md:mt-6">
-          <motion.div style={{ x }} className="flex gap-4 px-6 md:h-full md:gap-8 md:px-12">
+        <div className="relative mt-4 flex min-h-0 flex-1 items-center md:mt-6">
+          <motion.div style={{ x }} className="flex items-stretch gap-4 px-6 md:gap-8 md:px-12">
             {services.map((s) => (
               <ServiceCard key={s.title} icon={ICON_MAP[s.icon] ?? Code2} title={s.title} desc={s.description} tags={s.tags} />
             ))}
@@ -99,7 +99,7 @@ function ServiceCard({
 }>) {
   return (
     <div
-      className="group relative flex h-auto md:h-full w-[85vw] shrink-0 flex-col rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 transition-colors hover:border-sky-300 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900 dark:hover:border-sky-500 sm:w-[82vw] sm:p-6 md:w-[38vw] md:p-9 lg:w-[34vw] lg:p-10"
+      className="group relative flex h-auto w-[85vw] shrink-0 flex-col rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 transition-colors hover:border-sky-300 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900 dark:hover:border-sky-500 sm:w-[82vw] sm:p-6 md:w-[38vw] md:p-9 lg:w-[34vw] lg:p-10"
     >
       <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-sky-200/50 blur-3xl dark:bg-sky-600/30" />
